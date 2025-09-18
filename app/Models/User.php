@@ -8,7 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
-use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Models\ToDo;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -54,4 +54,8 @@ class User extends Authenticatable implements JWTSubject
         return [];
     }
 
+    public function todoLists()
+    {
+        return $this->hasMany(ToDo::class);
+    }
 }

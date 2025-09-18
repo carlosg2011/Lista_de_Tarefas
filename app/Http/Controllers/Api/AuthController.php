@@ -6,9 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
+
+ public function showRegistrationForm()
+    {
+        return view('auth.register');
+    }
+
 
     public function register(Request $request)
     {
@@ -29,7 +36,10 @@ class AuthController extends Controller
         ], 201);
     }
 
-
+    public function showLoginForm()
+    {
+        return view('auth.login');
+    }
 
     public function login(Request $request)
     {
@@ -44,8 +54,12 @@ class AuthController extends Controller
             'data' => [
                 'token_type' => 'bearer',
                 'token' => $token,
-                'expires_in' => date('Y-m-d H:i:s', strtotime('+' . 120 * 60))
+                'expires_in' => Carbon::now('America/Sao_Paulo')->addHours(2)->toDateTimeString()
             ]
         ]);
+
+
+        return response()->json(['message' => 'Login successful'], 200);
+        
     }
 }
