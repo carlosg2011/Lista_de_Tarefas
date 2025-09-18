@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\ToDoController;
+use App\Http\Controllers\TaskController;
 
 
 /*
@@ -22,3 +24,13 @@ Route::middleware('api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::middleware(['auth:api'])->group(function () {
+
+Route::apiResource('todolists', ToDoController::class);
+
+Route::get('/todolists/{id}/tasks',    [TaskController::class, 'index']);
+Route::post('/todolists/{id}/tasks',   [TaskController::class, 'store']);
+Route::patch('/tasks/{id}',            [TaskController::class, 'update']);
+Route::delete('/tasks/{id}',           [TaskController::class, 'destroy']);
+
+});
