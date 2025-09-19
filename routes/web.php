@@ -23,3 +23,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 
+Route::get('/dashboard', function () {
+    return "Bem-vindo ao seu App! Você está autenticado.";
+})->name('dashboard');
+

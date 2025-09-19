@@ -1,52 +1,63 @@
-@extends('layouts.layout')
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .card {
+            border-radius: 1rem;
+            padding: 2rem;
+            width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            background-color: #fff;
+        }
+        .btn-primary {
+            background: #6B73FF;
+            border: none;
+        }
+        .btn-primary:hover {
+            background: #000DFF;
+        }
+    </style>
+</head>
+<body>
 
-@section('title', 'Entrar')
+<div class="card">
+    <h3 class="text-center mb-4">Bem-vindo de volta!</h3>
 
-@section('content')
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-success text-white text-center">
-                    <h4>Login</h4>
-                </div>
-                <div class="card-body">
-                    <!-- Exibir erros de validação -->
-                    @if ($errors->any())
-                        <div class="alert alert-danger">
-                            <ul class="mb-0">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
+    @if ($errors->has('login_error'))
+        <div class="alert alert-danger">{{ $errors->first('login_error') }}</div>
+    @endif
 
-                    <form method="POST" action="{{ route('login') }}">
-                        @csrf
+    <form method="POST" action="{{ route('login') }}">
+        @csrf
 
-                        <div class="mb-3">
-                            <label for="email" class="form-label">E-mail</label>
-                            <input type="email" name="email" class="form-control" id="email" required value="{{ old('email') }}">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Senha</label>
-                            <input type="password" name="password" class="form-control" id="password" required>
-                        </div>
-
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" name="remember" class="form-check-input" id="remember">
-                            <label class="form-check-label" for="remember">Lembrar de mim</label>
-                        </div>
-
-                        <button type="submit" class="btn btn-success w-100">Entrar</button>
-                    </form>
-
-                    <div class="mt-3 text-center">
-                        <a href="{{ route('register') }}">Não tem uma conta? Registrar</a>
-                    </div>
-                </div>
-            </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">E-mail</label>
+            <input type="email" name="email" class="form-control" id="email" value="{{ old('email') }}" required autofocus>
         </div>
-    </div>
-@endsection
+
+        <div class="mb-3">
+            <label for="password" class="form-label">Senha</label>
+            <input type="password" name="password" class="form-control" id="password" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Entrar</button>
+
+        <div class="text-center mt-3">
+            <a href="{{ route('register') }}">Não tem uma conta? Cadastre-se</a>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>
