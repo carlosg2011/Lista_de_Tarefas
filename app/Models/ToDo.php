@@ -10,7 +10,9 @@ class ToDo extends Model
 {
     use HasFactory;
 
-       protected $fillable = ['title', 'user_id'];
+        protected $table = 'todos';
+
+        protected $fillable = ['title', 'user_id'];
 
     public function user()
     {

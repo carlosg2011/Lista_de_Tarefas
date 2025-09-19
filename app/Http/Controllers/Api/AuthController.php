@@ -52,7 +52,8 @@ class AuthController extends Controller
 
         session(['jwt_token' => $token]);
 
-        return redirect()->route('dashboard')->with('success', 'Cadastro realizado com sucesso!');
+        return redirect()->route('tasklist.index')->with('success', 'Cadastro realizado com sucesso!');
+        
     }
 
     public function showLoginForm()
@@ -90,7 +91,7 @@ class AuthController extends Controller
         session(['jwt_token' => $token]);
 
         // Redirecionar para a área logada
-        return redirect()->route('dashboard')->with('success', 'Cadastro realizado com sucesso!');
+        return redirect()->route('tasklist.index')->with('success', 'Login realizado com sucesso!');
         
     }
 }

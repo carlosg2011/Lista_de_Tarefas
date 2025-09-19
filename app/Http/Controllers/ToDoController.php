@@ -13,8 +13,8 @@ class ToDoController extends Controller
 
     public function index()
     {
-        $lists = ToDo::where('user_id', Auth::id())->get();
-        return response()->json($lists);
+        $todos = ToDo::where('user_id', Auth::id())->get();
+        return view('tasklist.index', compact('todos'));
     }
 
 
@@ -26,22 +26,26 @@ class ToDoController extends Controller
     
     public function store(Request $request)
     {
-        $request->validate(['title' => 'required|string|max:255']);
+        if (!Auth::check()) {
+        return redirect()->route('login')->withErrors('Você precisa estar logado.');
+    }
 
-        $list = ToDo::create([
-            'title' => $request->title,
-            'user_id' => Auth::id()
-        ]);
+    $request->validate(['title' => 'required|string|max:255']);
 
-        return response()->json($list, 201);
+    $todo = ToDo::create([
+        'title' => $request->title,
+        'user_id' => Auth::id()
+    ]);
+
+    return redirect()->route('tasklist.index')->with('success', 'Lista criada com sucesso!');
     }
 
     
     public function show(ToDo $toDo)
     {
-        $list = ToDo::with('tasks')->findOrFail($toDo->id);
+        $todos = ToDo::with('tasks')->findOrFail($toDo->id);
 
-        return response()->json($list);
+        return response()->json($todos);
     }
 
     
@@ -55,16 +59,16 @@ class ToDoController extends Controller
     {
         $request->validate(['title' => 'required|string|max:255']);
 
-        $list = ToDo::where('user_id', Auth::id())->findOrFail($toDo->id);
-        $list->update(['title' => $request->title]);
+        $todos = ToDo::where('user_id', Auth::id())->findOrFail($toDo->id);
+        $todos->update(['title' => $request->title]);
 
-        return response()->json($list);
+        return response()->json($todos);
     }
 
     public function destroy(ToDo $toDo)
     {
-        $list = ToDo::where('user_id', Auth::id())->findOrFail($toDo->id);
-        $list->delete();
+        $todos = ToDo::where('user_id', Auth::id())->findOrFail($toDo->id);
+        $todos->delete();
 
         return response()->json(['message' => 'Lista excluída com sucesso']);
     }
