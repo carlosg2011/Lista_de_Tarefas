@@ -12,9 +12,10 @@ class TaskController extends Controller
   
     public function index($listID)
     {
-        $list = ToDo::where('user_id', Auth::id())->todoLists()->with('tasks')->findOrFail($listID);
+         $list = ToDo::where('user_id', Auth::id())->todoLists()->with('tasks')->findOrFail($listID);
 
-        return response()->json($list->tasks);
+         return response()->json($list->tasks);
+
     }
 
    

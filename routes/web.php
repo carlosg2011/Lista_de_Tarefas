@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\TaskController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,8 +23,20 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/logout', function () {
+    Auth::logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect('/login');
+})->name('logout');
 
-Route::get('/dashboard', function () {
-    return "Bem-vindo ao seu App! Você está autenticado.";
-})->name('dashboard');
+use App\Http\Controllers\TodoController;
 
+// Route::middleware(['auth'])->group(function () {
+
+Route::get('/todos', [TodoController::class, 'index'])->name('tasklist.index');
+Route::post('/todos', [TodoController::class, 'store'])->name('tasklist.store');
+Route::patch('/todos/{todo}/toggle', [TodoController::class, 'toggle'])->name('tasklist.toggle');
+Route::delete('/todos/{todo}', [TodoController::class, 'destroy'])->name('tasklist.destroy');
+    
+// });
