@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,25 +15,25 @@
             align-items: flex-start;
             padding-top: 50px;
         }
+
         .card {
             border-radius: 1rem;
             padding: 2rem;
             width: 500px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             background-color: #fff;
             margin-bottom: 20px;
         }
+
         .btn-primary {
             background: #6B73FF;
             border: none;
         }
+
         .btn-primary:hover {
             background: #000DFF;
         }
-        .todo-done {
-            text-decoration: line-through;
-            color: gray;
-        }
+
         .logout-btn {
             position: absolute;
             top: 20px;
@@ -40,72 +41,72 @@
         }
     </style>
 </head>
+
 <body>
 
-    {{-- Botão de logout --}}
-    <form method="POST" action="{{ route('logout') }}" class="logout-btn">
-        @csrf
-        <button type="submit" class="btn btn-danger">Logout</button>
-    </form>
+    <button onclick="logout()" class="btn btn-danger logout-btn">Logout</button>
 
     <div class="card">
-        <h3 class="text-center mb-4">Minhas Listas de Tarefas</h3>
+        <h3 class="text-center mb-2">Minhas Listas de Tarefas</h3>
+        <div class="text-center mb-3 text-muted" id="userInfo"></div>
 
-        @if (session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
+        <div id="successMessage" class="alert alert-success d-none"></div>
+        <div id="errorMessage" class="alert alert-danger d-none"></div>
 
-        {{-- Formulário para criar novo ToDo --}}
-        <form method="POST" action="{{ route('tasklist.store') }}" class="mb-4">
-            @csrf
+        {{-- Formulário JS --}}
+        <form id="todoForm" class="mb-4">
             <div class="mb-3">
                 <label for="title" class="form-label">Título da Lista</label>
-                <input type="text" name="title" id="title" class="form-control" placeholder="Nova Lista" required>
+                <input type="text" id="title" class="form-control" placeholder="Nova Lista" required>
             </div>
             <button type="submit" class="btn btn-primary w-100">Adicionar Lista</button>
         </form>
 
-        {{-- Listagem dos ToDo's --}}
-        @if($todos->count() > 0)
-            <ul class="list-group">
-                @foreach($todos as $todo)
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span>{{ $todo->title }}</span>
-                        <div class="btn-group btn-group-sm">
-                            {{-- Editar (opcional) --}}
-                            <button type="button" class="btn btn-success" onclick="editTodo({{ $todo->id }}, '{{ $todo->title }}')">Editar</button>
+        <ul class="list-group" id="todoList"></ul>
 
-                            {{-- Excluir --}}
-                            <form method="POST" action="{{ route('tasklist.destroy', $todo->id) }}">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger">Excluir</button>
-                            </form>
-                        </div>
-                    </li>
-                @endforeach
-            </ul>
-        @else
-            <p class="text-center mt-3">Nenhuma lista cadastrada.</p>
-        @endif
+        <p class="text-center mt-3 text-muted d-none" id="emptyMessage">Nenhuma lista cadastrada.</p>
     </div>
 
-    {{-- Script simples para edição (modal ou prompt) --}}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
-        function editTodo(id, currentTitle) {
-            const newTitle = prompt("Atualize o título da lista:", currentTitle);
-            if(newTitle && newTitle !== currentTitle){
-                fetch(`/todos/${id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({ title: newTitle })
-                }).then(res => location.reload());
+        const API_URL = "http://127.0.0.1:8000/api/todos";
+        const token = localStorage.getItem("auth_token");
+        const headers = {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        };
+
+        if (!token) window.location.href = '/login';
+
+        async function loadUser() {
+            try {
+                const data = await fetch('/api/todos', {
+                    headers
+                });
+
+                console.log('Dados recebidos:', data);
+
+                if (data.ok) {
+                    userInfo.textContent = `Bem vindo de volta!`;
+                } else {
+                    console.warn('Resposta não OK:', data.status);
+                    logout();
+                }
+            } catch (err) {
+                console.error('Erro em loadUser:', err);
+                logout();
             }
         }
+
+        function logout() {
+            localStorage.clear();
+            localStorage.clear('token');
+            window.location.href = '/login';
+        }
+
+        loadUser();
     </script>
 
 </body>
+
 </html>

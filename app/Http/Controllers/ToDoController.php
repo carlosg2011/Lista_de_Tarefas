@@ -9,38 +9,41 @@ use Illuminate\Support\Facades\Auth;
 
 class ToDoController extends Controller
 {
-    
+
 
     public function index()
     {
         $todos = ToDo::where('user_id', Auth::id())->get();
+
+        $token = session('jwt_token');
+
+        if (!$token) {
+            return redirect('/login');
+        }
         return view('tasklist.index', compact('todos'));
     }
 
 
-    public function create()
-    {
-        
-    }
+    public function create() {}
 
-    
+
     public function store(Request $request)
     {
         if (!Auth::check()) {
-        return redirect()->route('login')->withErrors('Você precisa estar logado.');
+            return redirect()->route('login')->withErrors('Você precisa estar logado.');
+        }
+
+        $request->validate(['title' => 'required|string|max:255']);
+
+        $todo = ToDo::create([
+            'title' => $request->title,
+            'user_id' => Auth::id()
+        ]);
+
+        return redirect()->route('tasklist.index')->with('success', 'Lista criada com sucesso!');
     }
 
-    $request->validate(['title' => 'required|string|max:255']);
 
-    $todo = ToDo::create([
-        'title' => $request->title,
-        'user_id' => Auth::id()
-    ]);
-
-    return redirect()->route('tasklist.index')->with('success', 'Lista criada com sucesso!');
-    }
-
-    
     public function show(ToDo $toDo)
     {
         $todos = ToDo::with('tasks')->findOrFail($toDo->id);
@@ -48,13 +51,10 @@ class ToDoController extends Controller
         return response()->json($todos);
     }
 
-    
-    public function edit(ToDo $toDo)
-    {
-        
-    }
 
-   
+    public function edit(ToDo $toDo) {}
+
+
     public function update(Request $request, ToDo $toDo)
     {
         $request->validate(['title' => 'required|string|max:255']);
