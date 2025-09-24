@@ -14,7 +14,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // Rotas da lista de tarefas
-    Route::get('/todos',          [ToDoController::class, 'index']);
+    Route::get('/todos', [ToDoController::class, 'index']);
     Route::post('/todos',         [ToDoController::class, 'store']);
     Route::get('/todos/{todo}',   [ToDoController::class, 'show']);
     Route::put('/todos/{todo}',   [ToDoController::class, 'update']);

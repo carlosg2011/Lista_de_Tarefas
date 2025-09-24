@@ -67,7 +67,7 @@
 
  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
- $("#registerForm").submit(function (e) {
+$("#registerForm").submit(function (e) {
     e.preventDefault();
 
     const name = $("#name").val().trim();
@@ -75,8 +75,7 @@
     const password = $("#password").val();
     const password_confirmation = $("#password_confirmation").val();
 
-    $("#errorMessage").addClass('d-none');
-    $("#errorMessage").html('');
+    $("#errorMessage").addClass('d-none').html('');
 
     if (password !== password_confirmation) {
         $("#errorMessage").removeClass('d-none').text("As senhas não coincidem.");
@@ -98,14 +97,30 @@
                 localStorage.setItem("auth_token", response.access_token);
                 window.location.href = "/todos";
             } else {
-                $("#errorMessage").removeClass('d-none').text("Erro ao cadastrar.");
+                $("#errorMessage").removeClass('d-none').text(response.message || "Erro ao cadastrar.");
             }
         },
-        error: function() {
-            $("#errorMessage").removeClass('d-none').text("Erro de conexão com o servidor.");
-        },
+        error: function(xhr) {
+            const res = xhr.responseJSON;
+            let msg = '';
+
+            if (res?.errors) {
+                $.each(res.errors, function (key, errors) {
+                    errors.forEach(error => {
+                        msg += `<p>${error}</p>`;
+                    });
+                });
+            } else if (res?.message) {
+                msg = `<p>${res.message}</p>`;
+            } else {
+                msg = 'Erro inesperado. Tente novamente.';
+            }
+
+            $("#errorMessage").removeClass('d-none').html(msg);
+        }
     });
 });
+
 </script>
 
 </body>

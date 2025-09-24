@@ -10,19 +10,16 @@ use Illuminate\Support\Facades\Auth;
 class ToDoController extends Controller
 {
 
-
-    public function index()
-    {
-        $todos = ToDo::where('user_id', Auth::id())->get();
-
-        $token = session('jwt_token');
-
-        if (!$token) {
-            return redirect('/login');
-        }
-        return view('tasklist.index', compact('todos'));
+public function index()
+{
+    if (!Auth::check()) {
+        return response()->json(['error' => 'Não autenticado.'], 401);
     }
 
+    $todos = ToDo::where('user_id', Auth::id())->get();
+
+    return response()->json($todos);
+}
 
     public function create() {}
 
@@ -40,7 +37,7 @@ class ToDoController extends Controller
             'user_id' => Auth::id()
         ]);
 
-        return redirect()->route('tasklist.index')->with('success', 'Lista criada com sucesso!');
+        return response()->json($todo, 201);
     }
 
 
@@ -52,23 +49,20 @@ class ToDoController extends Controller
     }
 
 
-    public function edit(ToDo $toDo) {}
+    public function update(Request $request, $id)
+{
+    $request->validate(['title' => 'required|string|max:255']);
 
+    $todo = ToDo::where('user_id', Auth::id())->findOrFail($id);
+    $todo->update(['title' => $request->title]);
 
-    public function update(Request $request, ToDo $toDo)
+    return response()->json($todo);
+}
+
+    public function destroy($id)
     {
-        $request->validate(['title' => 'required|string|max:255']);
-
-        $todos = ToDo::where('user_id', Auth::id())->findOrFail($toDo->id);
-        $todos->update(['title' => $request->title]);
-
-        return response()->json($todos);
-    }
-
-    public function destroy(ToDo $toDo)
-    {
-        $todos = ToDo::where('user_id', Auth::id())->findOrFail($toDo->id);
-        $todos->delete();
+        $todo = ToDo::where('user_id', Auth::id())->findOrFail($id);
+        $todo->delete();
 
         return response()->json(['message' => 'Lista excluída com sucesso']);
     }
