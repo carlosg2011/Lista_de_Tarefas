@@ -13,6 +13,6 @@ class Task extends Model
 
     public function todo()
     {
-        return $this->belongsTo(ToDo::class);
+        return $this->belongsTo(ToDo::class, 'todo_id');
     }
 }

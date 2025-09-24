@@ -174,6 +174,7 @@
                         $('#todoList').append(
                             $('<li>').addClass('list-group-item').text(response.title || title)
                         );
+                        loadTodos();
                     },
                     error: function(xhr) {
                         $('#errorMessage').text('Erro ao criar lista.').removeClass('d-none');
@@ -289,8 +290,173 @@
 
         // Crud Listas - fim
 
+        // Crud Tarefas - inicio
+        $('#taskForm').on('submit', function(e) {
+            e.preventDefault();
+
+            const taskTitle = $('#taskInput').val().trim();
+
+            if (!taskTitle || !selectedListId) {
+                alert('Preencha a tarefa e selecione uma lista.');
+                return;
+            }
+
+            const apiUrl = `http://127.0.0.1:8000/api/todos/${selectedListId}/tasks`;
+
+            $.ajax({
+                url: apiUrl,
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    title: taskTitle
+                }),
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                },
+                success: function(response) {
+                    $('#taskInput').val('');
+                    $('#taskList').append(
+                        $('<li>').addClass('list-group-item').text(response.title)
+                    );
+                    loadTasks();
+                },
+                error: function(xhr) {
+                    console.error('Erro ao criar tarefa:', xhr.responseText);
+                    alert('Erro ao criar tarefa.');
+                }
+            });
+        });
+
+
+        function loadTasks() {
+            if (!selectedListId) return;
+
+            $.ajax({
+                url: `${API_URL}/${selectedListId}/tasks`,
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                },
+                success: function(tasks) {
+                    const container = $('#taskList').empty();
+
+                    if (tasks.length === 0) {
+                        $('#noTasksMessage').removeClass('d-none');
+                        return;
+                    }
+
+                    $('#noTasksMessage').addClass('d-none');
+
+                    tasks.forEach(task => {
+                        const isChecked = task.is_done ? 'checked' : '';
+                        const textStyle = task.is_done ? 'text-decoration: line-through; opacity: 0.6;' : '';
+
+                        const item = $(`
+                    <li class="list-group-item d-flex justify-content-between align-items-center" data-id="${task.id}">
+                        <div class="form-check flex-grow-1" style="${textStyle}">
+                            <input class="form-check-input me-2 task-check" type="checkbox" ${isChecked}>
+                            <span class="task-title">${task.title}</span>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary btn-edit-task">Editar</button>
+                            <button class="btn btn-sm btn-outline-danger btn-delete-task">Excluir</button>
+                        </div>
+                    </li>
+                `);
+
+                        // Checkbox
+                        item.find('.task-check').on('change', function() {
+                            const is_done = $(this).is(':checked');
+
+                            $.ajax({
+                                url: `${API_URL}/${selectedListId}/tasks/${task.id}`,
+                                method: 'PUT',
+                                contentType: 'application/json',
+                                headers: {
+                                    'Authorization': 'Bearer ' + token
+                                },
+                                data: JSON.stringify({
+                                    is_done: is_done
+                                }),
+                                success: function() {
+                                    loadTasks();
+                                },
+                                error: function(xhr) {
+                                    console.error("Erro ao atualizar tarefa:", xhr.responseText);
+                                    alert("Erro ao atualizar tarefa.");
+                                }
+                            });
+                        });
+
+                        // Editar
+                        item.find('.btn-edit-task').on('click', function() {
+                            const $btn = $(this);
+                            const $titleSpan = item.find('.task-title');
+
+                            if ($btn.text() === "Salvar") {
+                                const newTitle = item.find('.task-edit-input').val().trim();
+
+                                if (!newTitle) {
+                                    alert("O título não pode estar vazio.");
+                                    return;
+                                }
+
+                                $.ajax({
+                                    url: `${API_URL}/${selectedListId}/tasks/${task.id}`,
+                                    method: 'PUT',
+                                    contentType: 'application/json',
+                                    headers: {
+                                        'Authorization': 'Bearer ' + token
+                                    },
+                                    data: JSON.stringify({
+                                        title: newTitle
+                                    }),
+                                    success: function() {
+                                        loadTasks();
+                                    },
+                                    error: function(xhr) {
+                                        console.error("Erro ao editar tarefa:", xhr.responseText);
+                                        alert("Erro ao editar tarefa.");
+                                    }
+                                });
+                            } else {
+                                const currentTitle = $titleSpan.text();
+                                $titleSpan.replaceWith(`<input type="text" class="form-control form-control-sm task-edit-input" value="${currentTitle}">`);
+                                $btn.text("Salvar");
+                            }
+                        });
+
+                        // Excluir
+                        item.find('.btn-delete-task').on('click', function() {
+                            if (!confirm("Tem certeza que deseja excluir esta tarefa?")) return;
+
+                            $.ajax({
+                                url: `${API_URL}/${selectedListId}/tasks/${task.id}`,
+                                method: 'DELETE',
+                                headers: {
+                                    'Authorization': 'Bearer ' + token
+                                },
+                                success: function() {
+                                    loadTasks();
+                                },
+                                error: function(xhr) {
+                                    console.error("Erro ao excluir tarefa:", xhr.responseText);
+                                    alert("Erro ao excluir tarefa.");
+                                }
+                            });
+                        });
+
+                        container.append(item);
+                    });
+                },
+                error: function(xhr) {
+                    console.error("Erro ao carregar tarefas:", xhr.status, xhr.responseText);
+                }
+            });
+        }
+
         loadUser();
-        loadTodos()
+        loadTodos();
     </script>
 
 </body>

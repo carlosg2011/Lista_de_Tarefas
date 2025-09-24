@@ -9,31 +9,27 @@ use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
-  
+
     public function index($listID)
     {
-         $list = ToDo::where('user_id', Auth::id())->todoLists()->with('tasks')->findOrFail($listID);
+        $todo = ToDo::where('user_id', Auth::id())->find($listID);
 
-         return response()->json($list->tasks);
+        $tasks = $todo->tasks;
 
+        return response()->json($tasks);
     }
 
-   
-    public function create()
+    public function store(Request $request, ToDo $todo)
     {
-        //
-    }
+        if ($todo->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Acesso negado.'], 403);
+        }
 
-
-    public function store(Request $request, $listID)
-    {
         $request->validate([
             'title' => 'required|string|max:255'
         ]);
 
-        $list = ToDo::where('user_id', Auth::id())->todoLists()->findOrFail($listID);
-
-        $task = $list->tasks()->create([
+        $task = $todo->tasks()->create([
             'title' => $request->title,
             'is_done' => false
         ]);
@@ -41,40 +37,30 @@ class TaskController extends Controller
         return response()->json($task, 201);
     }
 
-    
-    public function show(Task $task)
+    public function update(Request $request, ToDo $todo, Task $task)
     {
-        
-    }
-
-    
-    public function edit(Task $task)
-    {
-        //
-    }
-
-    
-    public function update(Request $request, Task $task, $id)
-    {
-        $task = Task::findOrFail($id);
-
-        if ($task->todoList->user_id !== auth()->id()) {
+        if ($task->todo_id !== $todo->id || $todo->user_id !== auth()->id()) {
             return response()->json(['error' => 'Acesso negado'], 403);
         }
 
-        $task->update([
-            'is_done' => !$task->is_done
+        $request->validate([
+            'title' => 'nullable|string|max:255',
+            'is_done' => 'nullable|boolean',
         ]);
+
+        $task->update($request->only(['title', 'is_done']));
 
         return response()->json($task);
     }
 
-    
-    public function destroy(Task $task, $id)
-    {
-         $task = Task::findOrFail($id);
 
-        if ($task->todoList->user_id !== auth()->id()) {
+    public function destroy($todo_id, $id)
+    {
+        $task = Task::where('id', $id)
+            ->where('todo_id', $todo_id)
+            ->firstOrFail();
+
+        if ($task->todo->user_id !== auth()->id()) {
             return response()->json(['error' => 'Acesso negado'], 403);
         }
 
