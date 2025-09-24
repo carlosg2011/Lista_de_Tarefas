@@ -91,6 +91,7 @@
 
                     <ul class="list-group" id="taskList"></ul>
                     <p class="text-center text-muted mt-3 d-none" id="noTasksMessage">Nenhuma tarefa cadastrada.</p>
+                    <p class="text-center mt-2 fw-semibold" id="completedCount"></p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" id="deleteListBtn" class="btn btn-danger me-auto">Excluir Lista</button>
@@ -122,7 +123,7 @@
                 console.log('Dados recebidos:', data);
 
                 if (data.ok) {
-                    userInfo.textContent = `Bem vindo de volta!`;
+                    userInfo.textContent = `Qual a próxima tarefa?`;
                 } else {
                     console.warn('Resposta não OK:', data.status);
                     logout();
@@ -233,7 +234,7 @@
             const newTitle = $('#modalListTitle').val().trim();
 
             if (!newTitle) {
-                alert('O título não pode estar vazio.');
+                alert('O título da lista não pode estar vazio.');
                 return;
             }
 
@@ -242,7 +243,7 @@
                 return;
             }
 
-            $.ajax({
+            const updateList = $.ajax({
                 url: `${API_URL}/${selectedListId}`,
                 method: 'PUT',
                 contentType: 'application/json',
@@ -251,15 +252,51 @@
                 }),
                 headers: {
                     'Authorization': 'Bearer ' + token
-                },
-                success: function(response) {
-                    $('#listModal').modal('hide');
-                    loadTodos();
-                },
-                error: function(xhr) {
-                    console.error('Erro ao salvar alterações:', xhr.responseText);
-                    alert('Erro ao salvar alterações.');
                 }
+            });
+
+            const taskUpdates = [];
+
+            $('#taskList .list-group-item').each(function() {
+                const $item = $(this);
+                const taskId = $item.data('id');
+                const isDone = $item.find('.task-check').is(':checked');
+                const $input = $item.find('.task-edit-input');
+
+                let newTitle;
+
+                if ($input.length) {
+                    newTitle = $input.val().trim();
+                    if (!newTitle) {
+                        alert('O título da tarefa não pode estar vazio.');
+                        return false;
+                    }
+                } else {
+                    newTitle = $item.find('.task-title').text().trim();
+                }
+
+                const req = $.ajax({
+                    url: `${API_URL}/${selectedListId}/tasks/${taskId}`,
+                    method: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        title: newTitle,
+                        is_done: isDone
+                    }),
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+
+                taskUpdates.push(req);
+            });
+
+            $.when(updateList, ...taskUpdates).done(function() {
+                $('#listModal').modal('hide');
+                loadTodos();
+            }).fail(function(xhr) {
+                console.error('Erro ao salvar alterações:', xhr.responseText);
+                alert('Erro ao salvar alterações.');
             });
         });
 
@@ -342,12 +379,18 @@
 
                     if (tasks.length === 0) {
                         $('#noTasksMessage').removeClass('d-none');
+                        $('#completedCount').text('');
                         return;
                     }
 
                     $('#noTasksMessage').addClass('d-none');
 
+                    let completed = 0;
+                    let total = tasks.length;
+
                     tasks.forEach(task => {
+                        if (task.is_done) completed++;
+
                         const isChecked = task.is_done ? 'checked' : '';
                         const textStyle = task.is_done ? 'text-decoration: line-through; opacity: 0.6;' : '';
 
@@ -364,9 +407,13 @@
                     </li>
                 `);
 
+
                         // Checkbox
                         item.find('.task-check').on('change', function() {
                             const is_done = $(this).is(':checked');
+                            const completed = $('#taskList .task-check:checked').length;
+                            const total = $('#taskList .task-check').length;
+                            $('#completedCount').text(`${completed} de ${total} tarefas concluídas`);
 
                             $.ajax({
                                 url: `${API_URL}/${selectedListId}/tasks/${task.id}`,
@@ -376,6 +423,10 @@
                                     'Authorization': 'Bearer ' + token
                                 },
                                 data: JSON.stringify({
+
+
+
+
                                     is_done: is_done
                                 }),
                                 success: function() {
@@ -393,36 +444,15 @@
                             const $btn = $(this);
                             const $titleSpan = item.find('.task-title');
 
-                            if ($btn.text() === "Salvar") {
-                                const newTitle = item.find('.task-edit-input').val().trim();
-
-                                if (!newTitle) {
-                                    alert("O título não pode estar vazio.");
-                                    return;
-                                }
-
-                                $.ajax({
-                                    url: `${API_URL}/${selectedListId}/tasks/${task.id}`,
-                                    method: 'PUT',
-                                    contentType: 'application/json',
-                                    headers: {
-                                        'Authorization': 'Bearer ' + token
-                                    },
-                                    data: JSON.stringify({
-                                        title: newTitle
-                                    }),
-                                    success: function() {
-                                        loadTasks();
-                                    },
-                                    error: function(xhr) {
-                                        console.error("Erro ao editar tarefa:", xhr.responseText);
-                                        alert("Erro ao editar tarefa.");
-                                    }
-                                });
-                            } else {
+                            if ($btn.text() === "Editar") {
                                 const currentTitle = $titleSpan.text();
                                 $titleSpan.replaceWith(`<input type="text" class="form-control form-control-sm task-edit-input" value="${currentTitle}">`);
-                                $btn.text("Salvar");
+                                $btn.text("Cancelar");
+                            } else {
+                                const $input = item.find('.task-edit-input');
+                                const originalTitle = $input.val();
+                                $input.replaceWith(`<span class="task-title">${originalTitle}</span>`);
+                                $btn.text("Editar");
                             }
                         });
 
@@ -448,6 +478,8 @@
 
                         container.append(item);
                     });
+
+                    $('#completedCount').text(`${completed} de ${total} tarefas concluídas`);
                 },
                 error: function(xhr) {
                     console.error("Erro ao carregar tarefas:", xhr.status, xhr.responseText);

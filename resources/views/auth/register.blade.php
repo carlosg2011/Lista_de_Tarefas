@@ -67,57 +67,59 @@
 
  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
-$("#registerForm").submit(function (e) {
-    e.preventDefault();
+$(document).ready(function () {
+    $("#registerForm").submit(function (e) {
+        e.preventDefault();
 
-    const name = $("#name").val().trim();
-    const email = $("#email").val().trim();
-    const password = $("#password").val();
-    const password_confirmation = $("#password_confirmation").val();
+        const name = $("#name").val().trim();
+        const email = $("#email").val().trim();
+        const password = $("#password").val();
+        const password_confirmation = $("#password_confirmation").val();
 
-    $("#errorMessage").addClass('d-none').html('');
+        $("#errorMessage").addClass('d-none').html('');
 
-    if (password !== password_confirmation) {
-        $("#errorMessage").removeClass('d-none').text("As senhas não coincidem.");
-        return;
-    }
-
-    $.ajax({
-        url: "http://127.0.0.1:8000/api/register",
-        type: "POST",
-        contentType: "application/json",
-        data: JSON.stringify({
-            name,
-            email,
-            password,
-            password_confirmation
-        }),
-        success: function(response) {
-            if (response.access_token) {
-                localStorage.setItem("auth_token", response.access_token);
-                window.location.href = "/todos";
-            } else {
-                $("#errorMessage").removeClass('d-none').text(response.message || "Erro ao cadastrar.");
-            }
-        },
-        error: function(xhr) {
-            const res = xhr.responseJSON;
-            let msg = '';
-
-            if (res?.errors) {
-                $.each(res.errors, function (key, errors) {
-                    errors.forEach(error => {
-                        msg += `<p>${error}</p>`;
-                    });
-                });
-            } else if (res?.message) {
-                msg = `<p>${res.message}</p>`;
-            } else {
-                msg = 'Erro inesperado. Tente novamente.';
-            }
-
-            $("#errorMessage").removeClass('d-none').html(msg);
+        if (password !== password_confirmation) {
+            $("#errorMessage").removeClass('d-none').text("As senhas não coincidem.");
+            return;
         }
+
+        $.ajax({
+            url: "http://127.0.0.1:8000/api/register",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({
+                name,
+                email,
+                password,
+                password_confirmation
+            }),
+            success: function (response) {
+                if (response.access_token) {
+                    localStorage.setItem("auth_token", response.access_token);
+                    window.location.href = "/todos";
+                } else {
+                    $("#errorMessage").removeClass('d-none').text(response.message || "Erro ao cadastrar.");
+                }
+            },
+            error: function (xhr) {
+                const res = xhr.responseJSON;
+                let msg = '';
+
+                if (res?.errors) {
+                    $.each(res.errors, function (key, errors) {
+                        errors.forEach(error => {
+                            msg += `<p>${error}</p>`;
+                        });
+                    });
+                } else if (res?.message) {
+                    msg = `<p>${res.message}</p>`;
+                } else {
+                    msg = 'Erro inesperado. Tente novamente.';
+                }
+
+                $("#errorMessage").removeClass('d-none').html(msg);
+            }
+        });
     });
 });
 

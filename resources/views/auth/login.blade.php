@@ -37,7 +37,7 @@
 <body>
 
     <div class="card">
-        <h3 class="text-center mb-4">Bem-vindo de volta!</h3>
+        <h3 class="text-center mb-4">Login</h3>
 
         <div id="errorMessage" class="alert alert-danger d-none"></div>
 
