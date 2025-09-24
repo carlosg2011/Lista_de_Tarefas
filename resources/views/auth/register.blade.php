@@ -34,27 +34,17 @@
 <div class="card">
     <h3 class="text-center mb-4">Criar Conta</h3>
 
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul class="mb-0">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+    <div id="errorMessage" class="alert alert-danger d-none"></div>
 
-    <form method="POST" action="{{ route('register') }}">
-        @csrf
-
+    <form id="registerForm">
         <div class="mb-3">
             <label for="name" class="form-label">Nome</label>
-            <input type="text" name="name" class="form-control" id="name" value="{{ old('name') }}" required autofocus>
+            <input type="text" name="name" class="form-control" id="name" required autofocus>
         </div>
 
         <div class="mb-3">
             <label for="email" class="form-label">E-mail</label>
-            <input type="email" name="email" class="form-control" id="email" value="{{ old('email') }}" required>
+            <input type="email" name="email" class="form-control" id="email" required>
         </div>
 
         <div class="mb-3">
@@ -74,6 +64,66 @@
         </div>
     </form>
 </div>
+
+ <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+$(document).ready(function () {
+    $("#registerForm").submit(function (e) {
+        e.preventDefault();
+
+        const name = $("#name").val().trim();
+        const email = $("#email").val().trim();
+        const password = $("#password").val();
+        const password_confirmation = $("#password_confirmation").val();
+
+        $("#errorMessage").addClass('d-none').html('');
+
+        if (password !== password_confirmation) {
+            $("#errorMessage").removeClass('d-none').text("As senhas não coincidem.");
+            return;
+        }
+
+        $.ajax({
+            url: "http://127.0.0.1:8000/api/register",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({
+                name,
+                email,
+                password,
+                password_confirmation
+            }),
+            success: function (response) {
+                if (response.access_token) {
+                    localStorage.setItem("auth_token", response.access_token);
+                    window.location.href = "/todos";
+                } else {
+                    $("#errorMessage").removeClass('d-none').text(response.message || "Erro ao cadastrar.");
+                }
+            },
+            error: function (xhr) {
+                const res = xhr.responseJSON;
+                let msg = '';
+
+                if (res?.errors) {
+                    $.each(res.errors, function (key, errors) {
+                        errors.forEach(error => {
+                            msg += `<p>${error}</p>`;
+                        });
+                    });
+                } else if (res?.message) {
+                    msg = `<p>${res.message}</p>`;
+                } else {
+                    msg = 'Erro inesperado. Tente novamente.';
+                }
+
+                $("#errorMessage").removeClass('d-none').html(msg);
+            }
+        });
+    });
+});
+
+</script>
 
 </body>
 </html>

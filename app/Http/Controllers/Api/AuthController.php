@@ -3,69 +3,71 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 use Carbon\Carbon;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
-
- public function showRegistrationForm()
-    {
-        return view('auth.register');
-    }
-
-
-    public function register(Request $request)
-    {
-        $validated = $request->validate([
-    'name'     => 'required|string|max:255',
-    'email'    => 'required|string|email|unique:users',
-    'password' => [
-        'required',
-        'string',
-        'min:8',
-        'confirmed',
-        'regex:/[a-z]/',
-        'regex:/[A-Z]/',
-        'regex:/[0-9]/',
-        'regex:/[@$!%*#?&]/',
-    ],
-], [
-    'email.unique'     => 'Email já cadastrado. Utilize outro email ou faça login por gentileza.',
-    'email.email'      => 'Por favor, insira um e-mail válido.',
-    'password.required'=> 'A senha é obrigatória.',
-    'password.min'      => 'A senha deve ter no mínimo 8 caracteres.',
-    'password.confirmed'=> 'As senhas não coincidem.',
-    'password.regex'    => 'A senha deve conter pelo menos: 1 letra maiúscula, 1 minúscula, 1 número e 1 caractere especial.',
-]);
-
-
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => bcrypt($validated['password']),
-        ]);
-
-        $token = JWTAuth::fromUser($user);
-
-        session(['jwt_token' => $token]);
-
-        return redirect()->route('tasklist.index')->with('success', 'Cadastro realizado com sucesso!');
-        
-    }
 
     public function showLoginForm()
     {
         return view('auth.login');
     }
 
+    public function showRegistrationForm()
+    {
+        return view('auth.register');
+    }
+
+    public function todos()
+    {
+        return view('tasklist.index');
+    }
+
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|string|email|unique:users',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'regex:/[a-z]/',
+                'regex:/[A-Z]/',
+                'regex:/[0-9]/',
+                'regex:/[@$!%*#?&]/',
+            ],
+        ], [
+            'email.unique'       => 'Email já cadastrado.',
+            'email.email'        => 'Insira um e-mail válido.',
+            'password.required'  => 'A senha é obrigatória.',
+            'password.min'       => 'A senha deve ter no mínimo 8 caracteres.',
+            'password.confirmed' => 'As senhas não coincidem.',
+            'password.regex'     => 'A senha deve conter: maiúscula, minúscula, número e caractere especial.',
+        ]);
+
+        $user = User::create([
+            'name'     => $validated['name'],
+            'email'    => $validated['email'],
+            'password' => bcrypt($validated['password']),
+        ]);
+
+        $token = JWTAuth::fromUser($user);
+
+        return response()->json([
+            'access_token' => $token,
+            'token_type'   => 'bearer',
+            'expires_in' => Carbon::now('America/Sao_Paulo')->addHours(2)->toDateTimeString()
+        ]);
+    }
+
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
-        $token = JWTAuth::attempt($credentials);
-
         $request->validate([
             'email'    => 'required|email',
             'password' => 'required|string',
@@ -74,24 +76,26 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
 
         if (!$token = JWTAuth::attempt($credentials)) {
-        return back()->withErrors([
-            'login_error' => 'E-mail ou senha inválidos. Tente novamente.',
-        ])->withInput();
+            return response()->json([
+                'error' => 'E-mail ou senha inválidos.'
+            ], 401);
         }
 
-        response()->json([
-            'data' => [
-                'token_type' => 'bearer',
-                'token' => $token,
-                'expires_in' => Carbon::now('America/Sao_Paulo')->addHours(2)->toDateTimeString()
-            ]
+        return response()->json([
+            'access_token' => $token,
+            'token_type'   => 'bearer',
+            'expires_in' => Carbon::now('America/Sao_Paulo')->addHours(2)->toDateTimeString()
         ]);
+    }
 
-        // Armazenar token na sessão 
-        session(['jwt_token' => $token]);
+    public function logout()
+    {
+        auth()->logout();
+        return response()->json(['message' => 'Logout efetuado com sucesso']);
+    }
 
-        // Redirecionar para a área logada
-        return redirect()->route('tasklist.index')->with('success', 'Login realizado com sucesso!');
-        
+    public function me()
+    {
+        return response()->json(auth()->user());
     }
 }
