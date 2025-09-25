@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Carbon\Carbon;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -67,26 +68,41 @@ class AuthController extends Controller
     }
 
     public function login(Request $request)
-    {
-        $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required|string',
-        ]);
+{
+    $validator = Validator::make($request->all(), [
+        'email'    => 'required|email',
+        'password' => 'required|string',
+    ]);
 
-        $credentials = $request->only('email', 'password');
-
-        if (!$token = JWTAuth::attempt($credentials)) {
-            return response()->json([
-                'error' => 'E-mail ou senha inválidos.'
-            ], 401);
-        }
-
+    if ($validator->fails()) {
         return response()->json([
-            'access_token' => $token,
-            'token_type'   => 'bearer',
-            'expires_in' => Carbon::now('America/Sao_Paulo')->addHours(2)->toDateTimeString()
-        ]);
+            'errors' => $validator->errors()
+        ], 422);
     }
+
+    $user = User::where('email', $request->email)->first();
+
+    if (!$user) {
+        return response()->json([
+            'error' => 'E-mail incorreto ou não cadastrado.'
+        ], 404);
+    }
+
+    if (!Hash::check($request->password, $user->password)) {
+        return response()->json([
+            'error' => 'Senha inválida.'
+        ], 401);
+    }
+
+
+    $token = JWTAuth::fromUser($user);
+
+    return response()->json([
+        'access_token' => $token,
+        'token_type'   => 'bearer',
+        'expires_in'   => Carbon::now('America/Sao_Paulo')->addHours(2)->toDateTimeString()
+    ]);
+}
 
     public function logout()
     {
