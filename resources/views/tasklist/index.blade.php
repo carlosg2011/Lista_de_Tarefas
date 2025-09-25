@@ -105,7 +105,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
-        const API_URL = "http://127.0.0.1:8000/api/todos";
+        const API_URL = "http://localhost:8000/api/todos";
         const token = localStorage.getItem("auth_token");
         const headers = {
             "Content-Type": "application/json",
@@ -150,7 +150,7 @@
                     return;
                 }
 
-                const apiUrl = 'http://127.0.0.1:8000/api/todos';
+                const apiUrl = 'http://localhost:8000/api/todos';
 
 
                 $.ajax({
@@ -338,7 +338,7 @@
                 return;
             }
 
-            const apiUrl = `http://127.0.0.1:8000/api/todos/${selectedListId}/tasks`;
+            const apiUrl = `http://localhost:8000/api/todos/${selectedListId}/tasks`;
 
             $.ajax({
                 url: apiUrl,

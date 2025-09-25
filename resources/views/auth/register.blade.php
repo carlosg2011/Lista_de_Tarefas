@@ -84,7 +84,7 @@ $(document).ready(function () {
         }
 
         $.ajax({
-            url: "http://127.0.0.1:8000/api/register",
+            url: "http://localhost:8000/api/register",
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify({
