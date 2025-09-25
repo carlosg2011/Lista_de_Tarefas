@@ -65,32 +65,69 @@
         $("#loginForm").submit(function(e) {
             e.preventDefault();
 
-            const email = $("#email").val();
-            const password = $("#password").val();
+            const email = $("#email").val().trim();
+            const password = $("#password").val().trim();
+            const errorMsg = $("#errorMessage");
 
-            $("#errorMsg").hide();
+            errorMsg.hide().text("");
+
+            if (!email || !validateEmail(email)) {
+                errorMsg.text("Informe um e-mail válido.").show();
+                return;
+            }
+
+            if (!password) {
+                errorMsg.text("A senha é obrigatória.").show();
+                return;
+            }
 
             $.ajax({
                 url: "http://127.0.0.1:8000/api/login",
                 type: "POST",
                 contentType: "application/json",
+                dataType: "json",
                 data: JSON.stringify({
                     email,
                     password
                 }),
+
                 success: function(response) {
                     if (response.access_token) {
                         localStorage.setItem("auth_token", response.access_token);
                         window.location.href = "/todos";
                     } else {
-                        $("#errorMsg").text("Erro ao efetuar o login").show();
+                        errorMsg.text("Erro ao efetuar o login.").show();
                     }
                 },
-                error: function() {
-                    $("#errorMsg").text("E-mail ou senha inválidos.").show();
-                },
+
+                error: function(xhr) {
+                    const response = xhr.responseJSON;
+
+                    if (xhr.status === 404 && response?.error) {
+                        errorMsg.removeClass('d-none').text(response.error).show();
+                    } else if (xhr.status === 401 && response?.error) {
+                        errorMsg.removeClass('d-none').text(response.error).show();
+                    } else if (xhr.status === 422 && response?.errors) {
+                        const errors = response.errors;
+
+                        if (errors.email) {
+                            errorMsg.removeClass('d-none').text(errors.email[0]).show();
+                        } else if (errors.password) {
+                            errorMsg.removeClass('d-none').text(errors.password[0]).show();
+                        } else {
+                            errorMsg.removeClass('d-none').text("Erro de validação nos dados.").show();
+                        }
+                    } else {
+                        errorMsg.removeClass('d-none').text("Erro inesperado. Tente novamente mais tarde.").show();
+                    }
+                }
             });
         });
+
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
     </script>
 
 </body>
