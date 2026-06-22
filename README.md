@@ -1,138 +1,93 @@
-# 📝 Lista de Tarefas - Projeto Fullstack com Laravel, JWT, MySQL e Bootstrap
+# Lista de Tarefas — API REST Full Stack
 
-Aplicação de **lista de tarefas (ToDo List)** com backend em **Laravel + JWT**, banco de dados **MySQL**, e frontend simples feito com **HTML, Bootstrap e jQuery**. O projeto pode ser executado totalmente via **Docker** ou localmente com PHP/MySQL.
+![Laravel](https://img.shields.io/badge/Laravel-10-FF2D20?logo=laravel&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-8.x-777BB4?logo=php&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
+![JWT](https://img.shields.io/badge/Auth-JWT-F7B93E?logo=jsonwebtokens&logoColor=black)
 
----
-
-## 📦 Estrutura do Projeto
-
-Lista_de_Tarefas/
-├── app/ # Backend Laravel (API JWT)
-├── public/ # Frontend e assets (HTML/CSS/JS)
-├── database/ # Migrations e seeds
-├── routes/ # Rotas do Laravel
-├── docker-compose.yml
-└── README.md
-
+Aplicação web completa de gerenciamento de tarefas com autenticação JWT e rotas protegidas. Backend em **Laravel 10** com banco **MySQL** e containerização via **Docker**. Frontend em **HTML, Bootstrap 5 e jQuery** consumindo a API REST.
 
 ---
 
-## 🚀 Como Rodar o Projeto
+## Tecnologias
 
-### Pré-requisitos
-- Docker instalado e funcionando (opcional para ambiente isolado)
-- Docker Compose (opcional)
-- PHP 8.x e Composer (se não usar Docker)
+| Camada | Tecnologia | Versão |
+|---|---|---|
+| Backend | Laravel | 10 |
+| Autenticação | tymon/jwt-auth | — |
+| Banco de Dados | MySQL | 8 |
+| Frontend | HTML + Bootstrap + jQuery | 5 |
+| Containers | Docker + Docker Compose | — |
 
 ---
 
-### 🔧 Passos para rodar localmente
+## Funcionalidades
 
-1. Clonar o projeto:
+- Registro e login de usuários com autenticação JWT
+- Criação e gerenciamento de listas de tarefas
+- CRUD completo de tarefas por lista
+- Marcar tarefas como concluídas ou pendentes
+- Controle de sessão por token com logout
+- Rotas protegidas — somente usuários autenticados acessam os endpoints
+
+---
+
+## Pré-requisitos
+
+- Docker e Docker Compose instalados
+- **ou** PHP 8.x + Composer + MySQL (execução local sem Docker)
+
+---
+
+## Instalação e execução local
 
 ```bash
+# Clone o repositório
 git clone https://github.com/carlosg2011/Lista_de_Tarefas.git
 cd Lista_de_Tarefas
-```
-Instalar dependências do Laravel:
-```bash
+
+# Instale as dependências
 composer install
-```
-Configurar o arquivo .env:
-```bash
+
+# Configure o ambiente
 cp .env.example .env
-```
-Edite as variáveis do banco de dados:
-```php
-DB_CONNECTION=mysql
-DB_HOST=db
-DB_PORT=3306
-DB_DATABASE=todo_list
-DB_USERNAME=carlos
-DB_PASSWORD=Cgps201@
-```
-Gerar a chave da aplicação:
-```bash
+# Edite .env com suas credenciais de banco de dados
+
+# Gere a chave da aplicação
 php artisan key:generate
-```
-Rodar as migrations:
-```bash
+
+# Gere a chave JWT
+php artisan jwt:secret
+
+# Rode as migrations
 php artisan migrate
-```
-Gerar a chave JWT:
-```bash
-php artisan jwt:secret
-```
-```bash
-php artisan serve --host=0.0.0.0 --port=8000
-```
-Acesse a aplicação em: http://localhost:8000
 
-Passos para rodar com Docker (opcional)
-Se desejar usar Docker para rodar a aplicação completa, crie um docker-compose.yml com serviços de PHP/Laravel, MySQL e phpMyAdmin, depois:
+# Inicie o servidor
+php artisan serve
+```
+
+Acesse em: `http://localhost:8000`
+
+---
+
+## Execução com Docker
+
 ```bash
+# Suba os containers
 docker compose up --build -d
-```
 
-
-Frontend e backend: http://localhost:8000
-MySQL: localhost:3306 (user: carlos, pass: Cgps201@)
-
-Entrar no container Laravel para rodar comandos:
-```bash
-docker exec -it nome_do_container_php sh
-php artisan migrate --force
-php artisan jwt:secret
-```
-Roteiro de Uso
-
-📋 Registro
-Crie um usuário via formulário de registro.
-
-🔐 Login
-Informe email e senha para gerar token JWT.
-O token é necessário para acessar os endpoints de tarefas.
-
-🗂️ Gerenciar Listas
-Criar novas listas de tarefas.
-Selecionar uma lista para visualizar e manipular suas tarefas.
-
-✅ Gerenciar Tarefas
-Adicionar tarefas via frontend.
-Marcar como concluída ou desfazer.
-Deletar tarefas existentes.
-
-🚪 Logout
-Apagar token JWT e sair da sessão.
-
-🛠️ Tecnologias
-
-Backend: Laravel 10, JWT Auth (tymon/jwt-auth)
-Frontend: HTML, Bootstrap 5, jQuery
-Banco de Dados: MySQL 8
-Containers: Docker, Docker Compose (opcional)
-
-Comandos úteis:
-```bash
-# Subir containers
-docker compose up -d
-
-# Parar containers
-docker compose down
-
-# Entrar no container da API
+# Entre no container e configure
 docker exec -it todo-api sh
-
-# Rodar migrations
 php artisan migrate --force
-
-# Gerar JWT secret
 php artisan jwt:secret
-
-# Ver logs da API
-docker logs -f todo-api
 ```
 
-📄 Licença
+| Serviço | URL |
+|---|---|
+| Aplicação | http://localhost:8000 |
+| MySQL | localhost:3306 |
 
-Este projeto está sob a licença MIT.
+---
+
+## Estrutura de pastas
